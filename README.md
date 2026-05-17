@@ -57,13 +57,14 @@ CmdForge automates that workflow while keeping it:
 
 Current version:
 
-    cmdforge 0.1.1
+    cmdforge 0.2.0
 
 Implemented:
 
 - ✅ `cmdforge` CLI
 - ✅ `cmdforge commandify`
 - ✅ `cmdforge remove`
+- ✅ `cmdforge py2to3`
 - ✅ Interactive workflow
 - ✅ Non-interactive flags
 - ✅ User-level install scope
@@ -76,6 +77,8 @@ Implemented:
 - ✅ User-level install scripts
 - ✅ Rollback instructions
 - ✅ Unit tests
+- ✅ Safe Python 2 to Python 3 scan workflow
+- ✅ Python 2 to Python 3 converted-copy workflow
 
 Planned:
 
@@ -268,6 +271,41 @@ If the wrapper was already removed, CmdForge cannot read its metadata anymore. I
 
 ---
 
+## 🐍 Python 2 to Python 3 Helper
+
+CmdForge includes an early Python 2 to Python 3 helper.
+
+Scan a Python 2 project without changing files:
+
+    cmdforge py2to3 \
+      --path /path/to/python2/project \
+      --dry-run
+
+Create a converted copy:
+
+    cmdforge py2to3 \
+      --path /path/to/python2/project \
+      --output /path/to/python2-project-py3
+
+The original project is not modified.
+
+Current behavior:
+
+- Scans Python files for common Python 2 patterns.
+- Ignores `.git`, `.venv`, cache directories, build directories, and bytecode files.
+- Copies the project to a separate output path.
+- Runs conversion on the copy.
+- Runs a Python 3 compile check on the converted output.
+
+Important:
+
+- Python 2 to Python 3 conversion is not always fully automatic.
+- A successful compile check does not guarantee runtime correctness.
+- Some converted files may still require manual review.
+- CmdForge does not overwrite the original project.
+
+---
+
 ## 🛡️ Safe by Default
 
 CmdForge defaults to user-level installation:
@@ -323,7 +361,7 @@ CmdForge detects common dependency files:
 - `Pipfile.lock`
 - `poetry.lock`
 
-In version `0.1.1`, automatic installation is intentionally limited to:
+In version `0.2.0`, automatic installation is intentionally limited to:
 
     requirements*.txt
 

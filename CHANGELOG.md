@@ -2,6 +2,31 @@
 
 All notable changes to CmdForge will be documented in this file.
 
+## v0.2.0-alpha - 2026-05-17
+
+### Added
+
+- Added `cmdforge py2to3`.
+- Added Python 2 pattern scanner.
+- Added safe dry-run scan mode for Python 2 projects.
+- Added converted-copy workflow using an output path.
+- Added project copy logic that ignores `.git`, `.venv`, cache directories, build directories, and bytecode files.
+- Added conversion engine integration using `fissix`.
+- Added compile check after conversion.
+- Added unit tests for py2to3 scanning and copy behavior.
+
+### Security
+
+- The original Python 2 project is not modified.
+- Conversion runs on a copied output directory.
+- Existing output directories are not overwritten.
+- In-place conversion is intentionally not included yet.
+
+### Notes
+
+- Python 2 to Python 3 conversion may still require manual review.
+- Passing compile checks does not guarantee runtime correctness.
+
 ## v0.1.1-alpha - 2026-05-17
 
 ### Added

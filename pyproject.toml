@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cmdforge"
-version = "0.1.1"
+version = "0.2.0"
 description = "Safely turn Python tools into permanent Linux commands."
 readme = "README.md"
 requires-python = ">=3.10"
