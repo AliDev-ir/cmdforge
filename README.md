@@ -57,7 +57,7 @@ CmdForge automates that workflow while keeping it:
 
 Current version:
 
-    cmdforge 0.2.1
+    cmdforge 0.3.0
 
 Implemented:
 
@@ -81,6 +81,8 @@ Implemented:
 - ✅ Python 2 to Python 3 converted-copy workflow
 - ✅ JSON report output for py2to3
 - ✅ Syntax check without generating `__pycache__`
+- ✅ Debian `.deb` package builder
+- ✅ Self-contained `.deb` package with offline wheelhouse
 
 Planned:
 
@@ -116,6 +118,50 @@ By default, CmdForge installs a wrapper here:
     ~/.local/bin/cmdforge
 
 No `sudo` is required.
+
+---
+
+## 📦 Debian Package
+
+CmdForge can build a self-contained Debian package.
+
+Build the package:
+
+    scripts/build-deb.sh
+
+The package is written to:
+
+    dist/
+
+Example output:
+
+    dist/cmdforge_0.3.0~beta1_all.deb
+
+Install the package:
+
+    sudo dpkg -i dist/cmdforge_*_all.deb
+
+Test the installed command:
+
+    /usr/bin/cmdforge --version
+    /usr/bin/cmdforge --help
+
+Remove the package:
+
+    sudo dpkg -r cmdforge
+
+Packaging behavior:
+
+- Installs the runtime wrapper at `/usr/bin/cmdforge`.
+- Stores package resources in `/opt/cmdforge`.
+- Creates a dedicated virtual environment at `/opt/cmdforge/.venv`.
+- Installs CmdForge from local wheels inside `/opt/cmdforge/wheelhouse`.
+- Does not install Python dependencies into the system Python.
+- Does not require internet access during package installation.
+
+Note:
+
+The first `.deb` packaging path is still beta-level and should be tested on target Debian/Kali systems before relying on it in production.
 
 ---
 
@@ -372,7 +418,7 @@ CmdForge detects common dependency files:
 - `Pipfile.lock`
 - `poetry.lock`
 
-In version `0.2.1`, automatic installation is intentionally limited to:
+In version `0.3.0`, automatic installation is intentionally limited to:
 
     requirements*.txt
 

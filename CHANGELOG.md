@@ -2,6 +2,29 @@
 
 All notable changes to CmdForge will be documented in this file.
 
+## v0.3.0-beta - 2026-05-17
+
+### Added
+
+- Added `scripts/build-deb.sh`.
+- Added self-contained Debian package build path.
+- Added offline wheelhouse packaging for CmdForge dependencies.
+- Added Debian package install wrapper at `/usr/bin/cmdforge`.
+- Added package runtime location under `/opt/cmdforge`.
+- Added `.gitignore` rules for build artifacts and local conversion outputs.
+
+### Packaging
+
+- The `.deb` package installs CmdForge into a dedicated virtual environment under `/opt/cmdforge/.venv`.
+- The package installs from local wheels and does not require internet access during installation.
+- The package avoids installing Python dependencies into the system Python.
+
+### Notes
+
+- This is the first beta release with Debian package support.
+- The package install/remove workflow has been smoke-tested on Kali.
+- Upgrade behavior still needs additional testing before declaring stable.
+
 ## v0.2.1-alpha - 2026-05-17
 
 ### Added

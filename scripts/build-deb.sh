@@ -26,7 +26,7 @@ print(match.group(1))
 PY
 )"
 
-DEB_VERSION="${DEB_VERSION:-${VERSION}~alpha1}"
+DEB_VERSION="${DEB_VERSION:-${VERSION}~beta1}"
 DEB_FILE="${DIST_DIR}/${PACKAGE_NAME}_${DEB_VERSION}_all.deb"
 
 echo "CmdForge .deb builder"
