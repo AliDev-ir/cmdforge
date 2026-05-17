@@ -8,6 +8,9 @@ version = "0.1.1"
 description = "Safely turn Python tools into permanent Linux commands."
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = [
+    "fissix>=24.4.24",
+]
 license = { text = "MIT" }
 authors = [
     { name = "AliDev-ir" }

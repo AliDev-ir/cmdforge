@@ -7,7 +7,7 @@ import argparse
 from cmdforge import __version__
 from cmdforge.command_builder import run_command_builder
 from cmdforge.command_remover import run_command_remover
-from cmdforge.py2to3_converter import run_py2to3_placeholder
+from cmdforge.py2to3_converter import run_py2to3, run_py2to3_placeholder
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -115,9 +115,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Automatically confirm prompts where possible.",
     )
 
-    subparsers.add_parser(
+    py2to3 = subparsers.add_parser(
         "py2to3",
-        help="Python 2 to Python 3 migration helper. Planned feature.",
+        help="Safely scan or convert Python 2 code to Python 3.",
+    )
+    py2to3.add_argument("--path", help="Python file or project directory to scan or convert.")
+    py2to3.add_argument("--output", help="Output file or directory for converted copy.")
+    py2to3.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Scan only and do not create or modify files.",
+    )
+    py2to3.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Automatically confirm prompts where possible.",
     )
 
     return parser
@@ -172,7 +185,9 @@ def main() -> int:
             return run_command_remover(args)
 
         if args.command == "py2to3":
-            return run_py2to3_placeholder()
+            if not getattr(args, "path", None):
+                return run_py2to3_placeholder()
+            return run_py2to3(args)
 
         return run_interactive_menu()
     except KeyboardInterrupt:
