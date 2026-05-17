@@ -1,217 +1,309 @@
-# CmdForge
+# ⚒️ CmdForge
 
-CmdForge is a Linux-focused Python CLI tool that helps you safely turn Python tools into permanent terminal commands.
+<p align="center">
+  <strong>Turn Python tools into permanent Linux commands — safely, cleanly, and reversibly.</strong>
+</p>
 
-It is designed for developers, Linux users, security researchers, and tool collectors who often download Python tools from GitHub and want to run them from anywhere in the terminal.
+<p align="center">
+  <img alt="Python" src="https://img.shields.io/badge/Python-%3E%3D3.10-blue">
+  <img alt="Platform" src="https://img.shields.io/badge/Platform-Linux-lightgrey">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-green">
+  <img alt="Status" src="https://img.shields.io/badge/Status-Alpha-orange">
+</p>
+
+---
+
+## 🚀 What is CmdForge?
+
+**CmdForge** is a Linux-focused Python CLI tool that helps you convert Python tools downloaded from GitHub into permanent terminal commands.
 
 Instead of running:
 
-    python3 /path/to/tool/main.py
+```bash
+python3 /path/to/tool/main.py
 
-you can create a command like:
+you can create a clean command like:
 
-    mytool
+mytool
 
-## Status
+Then run it from anywhere:
 
-Current version: `0.1.0`
+mytool --help
 
-CmdForge is in early development. The initial `commandify` workflow is implemented and tested locally. The Python 2 to Python 3 helper is planned as a future module.
+CmdForge is built for developers, Linux users, security researchers, automation workflows, and anyone who collects or uses Python-based tools.
 
-## Why CmdForge?
+✨ Why CmdForge?
 
-Many Python tools downloaded from GitHub are not packaged as proper Linux commands. Users often create manual wrapper scripts in `/usr/local/bin` or `~/.local/bin`.
+Many useful Python tools are not packaged as proper Linux commands.
 
-CmdForge automates this workflow while keeping safety, reversibility, and clarity in mind.
+You often end up manually doing things like:
 
-## Features
+sudo nano /usr/local/bin/mytool
+sudo chmod +x /usr/local/bin/mytool
 
-- Interactive CLI workflow
-- Subcommand-based usage
-- Python tool directory validation
-- Python entry-file selection
-- Safe command-name validation
-- Optional `.venv` creation inside the target tool directory
-- Dependency file detection
-- Optional dependency installation into `.venv`
-- User-level command installation in `~/.local/bin`
-- Optional custom install directory
-- Dry-run mode
-- Existing command detection
-- Safe Bash wrapper generation
-- Argument forwarding with `"$@"`
-- Rollback instructions
-- Initial unit tests
+CmdForge automates that workflow while keeping it:
 
-## Planned Features
+🔐 safer
+🧹 cleaner
+🔁 reversible
+🧪 testable
+🧰 suitable for real Linux workflows
+📦 ready for open-source distribution
+✅ Current Status
 
-- Improved dependency handling for `pyproject.toml`, `setup.py`, `Pipfile`, and Poetry projects
-- Better interactive entry-file selection
-- Optional system-wide installation helper for `/usr/local/bin`
-- Wrapper removal command
-- Command listing
-- Update/rebuild existing wrappers
-- Python 2 to Python 3 migration helper
-- More automated tests
-- PyPI packaging
+Current version:
 
-## Installation for Development
+cmdforge 0.1.0
+
+Implemented:
+
+✅ cmdforge CLI
+✅ cmdforge commandify
+✅ interactive workflow
+✅ non-interactive flags
+✅ safe wrapper generation
+✅ .venv creation for target tools
+✅ dependency file detection
+✅ optional dependency installation into .venv
+✅ --dry-run
+✅ user-level install scripts
+✅ rollback instructions
+✅ unit tests
+
+Planned:
+
+🧭 better interactive UX
+📦 PyPI / pipx installation
+🧹 wrapper removal command
+🔄 wrapper rebuild/update command
+🐍 Python 2 to Python 3 migration helper
+🧪 more tests
+🧰 better support for pyproject.toml, setup.py, Poetry, and Pipenv
+📦 Quick Install
 
 Clone the repository:
 
-    git clone https://github.com/AliDev-ir/cmdforge.git
-    cd cmdforge
+git clone https://github.com/AliDev-ir/cmdforge.git
+cd cmdforge
 
-Create and activate a virtual environment:
+Install CmdForge as a permanent user-level command:
 
-    python3 -m venv .venv
-    source .venv/bin/activate
+scripts/install-user.sh
 
-Install CmdForge in editable mode:
+Check it:
 
-    python -m pip install --upgrade pip
-    python -m pip install -e .
+cmdforge --version
+cmdforge --help
 
-Check the CLI:
+By default, CmdForge installs a wrapper here:
 
-    cmdforge --help
-    cmdforge --version
+~/.local/bin/cmdforge
 
-## Usage
+No sudo is required.
+
+🧪 Development Install
+
+For development, use editable mode:
+
+git clone https://github.com/AliDev-ir/cmdforge.git
+cd cmdforge
+scripts/install-user.sh --editable
+
+Or manually:
+
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
+cmdforge --version
+🧰 Basic Usage
 
 Run interactive mode:
 
-    cmdforge
+cmdforge
 
 Create a command from a Python tool:
 
-    cmdforge commandify
+cmdforge commandify
 
 Use non-interactive mode:
 
-    cmdforge commandify --path /path/to/python/tool --entry main.py --name mytool
+cmdforge commandify \
+  --path /path/to/python/tool \
+  --entry main.py \
+  --name mytool
 
-Create or reuse `.venv` inside the tool directory:
+Create or reuse .venv inside the target tool directory:
 
-    cmdforge commandify --path /path/to/python/tool --entry main.py --name mytool --venv
+cmdforge commandify \
+  --path /path/to/python/tool \
+  --entry main.py \
+  --name mytool \
+  --venv
 
-Preview changes without writing files:
+Preview everything without creating files:
 
-    cmdforge commandify --path /path/to/python/tool --entry main.py --name mytool --venv --dry-run
+cmdforge commandify \
+  --path /path/to/python/tool \
+  --entry main.py \
+  --name mytool \
+  --venv \
+  --dry-run
+
+Install supported dependencies into the tool-specific .venv:
+
+cmdforge commandify \
+  --path /path/to/python/tool \
+  --entry main.py \
+  --name mytool \
+  --venv \
+  --install-deps
 
 Skip dependency installation:
 
-    cmdforge commandify --path /path/to/python/tool --entry main.py --name mytool --venv --no-install-deps
+cmdforge commandify \
+  --path /path/to/python/tool \
+  --entry main.py \
+  --name mytool \
+  --venv \
+  --no-install-deps
+🛡️ Safe by Default
 
-Install supported dependency files into `.venv`:
+CmdForge defaults to user-level installation:
 
-    cmdforge commandify --path /path/to/python/tool --entry main.py --name mytool --venv --install-deps
+~/.local/bin
 
-Use a custom install directory:
+This is safer than writing to:
 
-    cmdforge commandify --path /path/to/python/tool --entry main.py --name mytool --install-dir ~/.local/bin
+/usr/local/bin
 
-## Default Install Location
+because it does not require sudo.
 
-CmdForge installs wrapper commands into:
+Make sure ~/.local/bin is in your PATH:
 
-    ~/.local/bin
+export PATH="$HOME/.local/bin:$PATH"
 
-This avoids requiring `sudo` and is safer than writing to system-wide locations by default.
+You can add that line to your shell config, for example:
 
-Make sure `~/.local/bin` is in your `PATH`:
+~/.bashrc
+~/.zshrc
+🧾 Wrapper Example
 
-    export PATH="$HOME/.local/bin:$PATH"
+With virtual environment:
 
-You can add that line to your shell configuration file, such as:
+#!/usr/bin/env bash
+exec /path/to/tool/.venv/bin/python /path/to/tool/main.py "$@"
 
-    ~/.bashrc
-    ~/.zshrc
+Without virtual environment:
 
-## Wrapper Example
+#!/usr/bin/env bash
+exec /usr/bin/env python3 /path/to/tool/main.py "$@"
 
-If a virtual environment is used, CmdForge creates a wrapper like:
+CmdForge preserves command arguments using:
 
-    #!/usr/bin/env bash
-    exec /path/to/tool/.venv/bin/python /path/to/tool/main.py "$@"
+"$@"
+🔎 Dependency Detection
 
-Without a virtual environment, the wrapper uses:
+CmdForge detects common dependency files:
 
-    #!/usr/bin/env bash
-    exec /usr/bin/env python3 /path/to/tool/main.py "$@"
+requirements.txt
+requirements-dev.txt
+requirements.clean.txt
+pyproject.toml
+setup.py
+setup.cfg
+Pipfile
+Pipfile.lock
+poetry.lock
 
-## Dependency Detection
+In version 0.1.0, automatic installation is intentionally limited to:
 
-CmdForge currently detects common dependency files such as:
+requirements*.txt
 
-- `requirements.txt`
-- `requirements-dev.txt`
-- `requirements.clean.txt`
-- `pyproject.toml`
-- `setup.py`
-- `setup.cfg`
-- `Pipfile`
-- `Pipfile.lock`
-- `poetry.lock`
+Other files are detected but not installed automatically yet.
 
-In version `0.1.0`, automatic installation is limited to `requirements*.txt` files.
+🔐 Security Notes
 
-Other files may be detected but are not installed automatically yet.
+CmdForge may work with tools downloaded from GitHub or other third-party sources.
 
-## Security Notes
+It does not make unknown code safe.
 
-CmdForge may work with tools downloaded from GitHub or other third-party sources. It does not make unknown code safe.
+Before wrapping or running any tool:
 
-Before creating wrappers or installing dependencies:
+Review the source code.
+Review dependency files.
+Avoid running unknown tools with sudo.
+Do not expose secrets, tokens, cookies, or credentials.
+Prefer --dry-run before creating commands.
+Prefer user-level installation.
+Only use security tools in environments where you have authorization.
 
-- Review the source code.
-- Review dependency files.
-- Avoid running unknown tools with elevated privileges.
-- Do not expose secrets, tokens, cookies, or credentials.
-- Prefer user-level installation over system-wide installation.
-- Use `--dry-run` before creating commands.
-- Only use security tools in environments where you have authorization.
+CmdForge avoids installing dependencies into the system Python. Dependency installation should happen inside a tool-specific .venv.
 
-CmdForge avoids installing dependencies into the system Python. Dependency installation is intended to happen inside a tool-specific `.venv`.
+🧹 Uninstall CmdForge
 
-## Rollback
+Remove the user-level CmdForge wrapper:
+
+scripts/uninstall-user.sh
+
+Remove the wrapper and project .venv:
+
+scripts/uninstall-user.sh --remove-venv
+🔁 Rollback Generated Commands
 
 CmdForge prints rollback instructions after creating a command.
 
 Typical rollback:
 
-    rm -f ~/.local/bin/mytool
-    rm -rf /path/to/tool/.venv
+rm -f ~/.local/bin/mytool
+rm -rf /path/to/tool/.venv
+🧪 Run Tests
 
-## Development
+Compile source and tests:
 
-Run syntax checks:
+python -m compileall src tests
 
-    python -m compileall src tests
+Run unit tests:
 
-Run tests:
-
-    python -m unittest discover -s tests -v
-
-## Current Architecture
-
-    cmdforge/
-    ├── README.md
-    ├── LICENSE
-    ├── pyproject.toml
-    ├── src/
-    │   └── cmdforge/
-    │       ├── __init__.py
-    │       ├── cli.py
-    │       ├── command_builder.py
-    │       ├── dependency_detector.py
-    │       ├── dependency_installer.py
-    │       ├── py2to3_converter.py
-    │       ├── utils.py
-    │       ├── venv_manager.py
-    │       └── wrapper_manager.py
-    └── tests/
-
-## License
+python -m unittest discover -s tests -v
+🧱 Project Structure
+cmdforge/
+├── README.md
+├── LICENSE
+├── pyproject.toml
+├── scripts/
+│   ├── install-user.sh
+│   └── uninstall-user.sh
+├── src/
+│   └── cmdforge/
+│       ├── __init__.py
+│       ├── cli.py
+│       ├── command_builder.py
+│       ├── dependency_detector.py
+│       ├── dependency_installer.py
+│       ├── py2to3_converter.py
+│       ├── utils.py
+│       ├── venv_manager.py
+│       └── wrapper_manager.py
+└── tests/
+🗺️ Roadmap
+v0.1.x
+improve commandify workflow
+add more tests
+improve README and examples
+add safer overwrite handling
+add wrapper inspection
+v0.2.x
+add wrapper removal command
+add wrapper list command
+improve dependency installation logic
+support more Python project formats
+Future
+Python 2 to Python 3 migration helper
+PyPI release
+pipx install support
+shell completion
+richer interactive UI
+📜 License
 
 MIT
