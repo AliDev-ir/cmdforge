@@ -6,6 +6,7 @@ import argparse
 
 from cmdforge import __version__
 from cmdforge.command_builder import run_command_builder
+from cmdforge.command_remover import run_command_remover
 from cmdforge.py2to3_converter import run_py2to3_placeholder
 
 
@@ -35,9 +36,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory where the wrapper command should be created. Default: ~/.local/bin",
     )
     commandify.add_argument(
+        "--scope",
+        choices=["user", "system"],
+        default=None,
+        help="Installation scope. Default: user.",
+    )
+    commandify.add_argument(
         "--system",
         action="store_true",
-        help="Install command in /usr/local/bin instead of ~/.local/bin.",
+        help="Alias for --scope system. Installs into /usr/local/bin.",
     )
     commandify.add_argument(
         "--venv",
@@ -71,6 +78,43 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show planned changes without creating files.",
     )
 
+    remove = subparsers.add_parser(
+        "remove",
+        help="Remove a CmdForge-managed command wrapper.",
+    )
+    remove.add_argument("name", help="Command name to remove.")
+    remove.add_argument(
+        "--install-dir",
+        help="Directory where the wrapper command exists. Default: ~/.local/bin",
+    )
+    remove.add_argument(
+        "--scope",
+        choices=["user", "system"],
+        default=None,
+        help="Removal scope. Default: user.",
+    )
+    remove.add_argument(
+        "--system",
+        action="store_true",
+        help="Alias for --scope system. Removes from /usr/local/bin.",
+    )
+    remove.add_argument(
+        "--remove-venv",
+        action="store_true",
+        help="Also remove the detected tool .venv if possible.",
+    )
+    remove.add_argument(
+        "--force",
+        action="store_true",
+        help="Remove even if the wrapper is not marked as managed by CmdForge.",
+    )
+    remove.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Automatically confirm prompts where possible.",
+    )
+
     subparsers.add_parser(
         "py2to3",
         help="Python 2 to Python 3 migration helper. Planned feature.",
@@ -83,7 +127,8 @@ def run_interactive_menu() -> int:
     print("CmdForge")
     print("========")
     print("1) Create a Linux command from a Python tool")
-    print("2) Python 2 to Python 3 helper")
+    print("2) Remove a CmdForge-managed command")
+    print("3) Python 2 to Python 3 helper")
     print("q) Quit")
 
     choice = input("\nSelect an option: ").strip().lower()
@@ -92,6 +137,19 @@ def run_interactive_menu() -> int:
         return run_command_builder()
 
     if choice == "2":
+        name = input("\nCommand name to remove: ").strip()
+        args = argparse.Namespace(
+            name=name,
+            install_dir=None,
+            scope=None,
+            system=False,
+            remove_venv=False,
+            force=False,
+            yes=False,
+        )
+        return run_command_remover(args)
+
+    if choice == "3":
         return run_py2to3_placeholder()
 
     if choice in {"q", "quit", "exit"}:
@@ -106,13 +164,23 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.command == "commandify":
-        return run_command_builder(args)
+    try:
+        if args.command == "commandify":
+            return run_command_builder(args)
 
-    if args.command == "py2to3":
-        return run_py2to3_placeholder()
+        if args.command == "remove":
+            return run_command_remover(args)
 
-    return run_interactive_menu()
+        if args.command == "py2to3":
+            return run_py2to3_placeholder()
+
+        return run_interactive_menu()
+    except KeyboardInterrupt:
+        print("\nAborted.")
+        return 130
+    except Exception as exc:
+        print(f"Error: {exc}")
+        return 1
 
 
 if __name__ == "__main__":

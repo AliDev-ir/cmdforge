@@ -132,15 +132,43 @@ def get_command_name(provided_name: str | None) -> str:
             raise ValueError(message)
 
 
-def resolve_install_dir(args: Namespace) -> Path:
-    """Resolve command installation directory."""
+def resolve_install_plan(args: Namespace) -> tuple[Path, str]:
+    """Resolve install directory and installation scope."""
+    if getattr(args, "system", False) and getattr(args, "scope", None) == "user":
+        raise ValueError("--system conflicts with --scope user.")
+
     if getattr(args, "install_dir", None):
-        return expand_path(args.install_dir)
+        return expand_path(args.install_dir), "custom"
 
     if getattr(args, "system", False):
-        return system_bin_dir()
+        return system_bin_dir(), "system"
 
-    return default_user_bin_dir()
+    scope = getattr(args, "scope", None) or "user"
+
+    if scope == "system":
+        return system_bin_dir(), "system"
+
+    return default_user_bin_dir(), "user"
+
+
+def describe_scope(scope: str) -> tuple[str, str]:
+    """Return availability and execution notes for a scope."""
+    if scope == "system":
+        return (
+            "all users with /usr/local/bin in PATH",
+            "invoking user, not root unless executed with sudo",
+        )
+
+    if scope == "custom":
+        return (
+            "users who have the custom install directory in PATH",
+            "invoking user, not root unless executed with sudo",
+        )
+
+    return (
+        "current user only",
+        "current user, not root unless executed with sudo",
+    )
 
 
 def should_create_venv(args: Namespace) -> bool:
@@ -197,6 +225,7 @@ def run_command_builder(args: Namespace | None = None) -> int:
             name=None,
             install_dir=None,
             system=False,
+            scope=None,
             venv=False,
             no_venv=False,
             install_deps=False,
@@ -219,7 +248,8 @@ def run_command_builder(args: Namespace | None = None) -> int:
 
     entry_file = choose_entry_file(tool_dir, args.entry)
     command_name = get_command_name(args.name)
-    install_dir = resolve_install_dir(args)
+    install_dir, scope = resolve_install_plan(args)
+    availability, execution_note = describe_scope(scope)
 
     create_venv_selected = should_create_venv(args)
     dependency_files = find_dependency_files(tool_dir)
@@ -257,11 +287,20 @@ def run_command_builder(args: Namespace | None = None) -> int:
     print(f"Tool directory:      {tool_dir}")
     print(f"Entry file:          {entry_file}")
     print(f"Command name:        {command_name}")
+    print(f"Scope:               {scope}")
+    print(f"Available to:        {availability}")
+    print(f"Runs as:             {execution_note}")
     print(f"Install directory:   {install_dir}")
     print(f"Target command:      {target_command}")
     print(f"Use virtualenv:      {'yes' if create_venv_selected else 'no'}")
     print(f"Install deps:        {'yes' if install_deps_selected else 'no'}")
     print(f"Dry-run:             {'yes' if args.dry_run else 'no'}")
+
+    if scope == "system":
+        print("")
+        print("System scope note:")
+        print("/usr/local/bin is usually writable only by root.")
+        print("CmdForge will not automatically use sudo.")
 
     if args.dry_run:
         create_wrapper(
@@ -271,6 +310,7 @@ def run_command_builder(args: Namespace | None = None) -> int:
             python_executable=python_executable,
             overwrite=overwrite,
             dry_run=True,
+            scope=scope,
         )
         print("")
         print("Dry-run complete. No files were changed.")
@@ -290,14 +330,21 @@ def run_command_builder(args: Namespace | None = None) -> int:
     if install_deps_selected and actual_python_executable is not None:
         install_dependencies(actual_python_executable, dependency_files)
 
-    command_path = create_wrapper(
-        command_name=command_name,
-        entry_file=entry_file,
-        install_dir=install_dir,
-        python_executable=actual_python_executable,
-        overwrite=overwrite,
-        dry_run=False,
-    )
+    try:
+        command_path = create_wrapper(
+            command_name=command_name,
+            entry_file=entry_file,
+            install_dir=install_dir,
+            python_executable=actual_python_executable,
+            overwrite=overwrite,
+            dry_run=False,
+            scope=scope,
+        )
+    except PermissionError as exc:
+        print("")
+        print(f"Permission error: {exc}")
+        print("If you selected system scope, rerun with appropriate privileges or use --scope user.")
+        return 1
 
     print_section("Done")
     print(f"Command created: {command_path}")
