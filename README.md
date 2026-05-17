@@ -57,14 +57,17 @@ CmdForge automates that workflow while keeping it:
 
 Current version:
 
-    cmdforge 0.1.0
+    cmdforge 0.1.1
 
 Implemented:
 
 - ✅ `cmdforge` CLI
 - ✅ `cmdforge commandify`
+- ✅ `cmdforge remove`
 - ✅ Interactive workflow
 - ✅ Non-interactive flags
+- ✅ User-level install scope
+- ✅ System-wide install scope
 - ✅ Safe wrapper generation
 - ✅ `.venv` creation for target tools
 - ✅ Dependency file detection
@@ -78,6 +81,7 @@ Planned:
 
 - 🧭 Better interactive UX
 - 📦 PyPI / pipx installation
+- 📦 Debian `.deb` package build path
 - 🧹 Wrapper removal command
 - 🔄 Wrapper rebuild/update command
 - 🐍 Python 2 to Python 3 migration helper
@@ -182,6 +186,88 @@ Skip dependency installation:
 
 ---
 
+## 👤 User vs System Scope
+
+CmdForge supports install scopes.
+
+User-level scope is the default:
+
+    cmdforge commandify \
+      --path /path/to/python/tool \
+      --entry main.py \
+      --name mytool \
+      --scope user
+
+This creates the wrapper in:
+
+    ~/.local/bin
+
+It is intended for the current user only and does not require `sudo`.
+
+System-wide scope:
+
+    cmdforge commandify \
+      --path /path/to/python/tool \
+      --entry main.py \
+      --name mytool \
+      --scope system
+
+This uses:
+
+    /usr/local/bin
+
+System-wide commands are available to users who have `/usr/local/bin` in their `PATH`.
+
+Important:
+
+- CmdForge does not automatically use `sudo`.
+- A system-wide wrapper may require root permissions to create.
+- A command does not automatically run as root.
+- A command runs as the user who invokes it.
+- It only runs as root if the user explicitly runs it with `sudo`.
+
+The older flag is still supported:
+
+    --system
+
+It acts as an alias for:
+
+    --scope system
+
+---
+
+## 🗑️ Remove Commands
+
+CmdForge can safely remove wrappers that it created.
+
+Remove a user-level command:
+
+    cmdforge remove mytool
+
+Equivalent explicit form:
+
+    cmdforge remove mytool --scope user
+
+Remove a system-wide command:
+
+    cmdforge remove mytool --scope system
+
+CmdForge refuses to remove files that are not marked as CmdForge-managed wrappers unless you use:
+
+    --force
+
+If a wrapper points to a tool-specific `.venv`, CmdForge detects it and tells you. It does not remove the `.venv` unless you request it:
+
+    cmdforge remove mytool --remove-venv
+
+Safety note:
+
+If the wrapper was already removed, CmdForge cannot read its metadata anymore. In that case, remove the tool `.venv` manually if needed:
+
+    rm -rf /path/to/tool/.venv
+
+---
+
 ## 🛡️ Safe by Default
 
 CmdForge defaults to user-level installation:
@@ -237,7 +323,7 @@ CmdForge detects common dependency files:
 - `Pipfile.lock`
 - `poetry.lock`
 
-In version `0.1.0`, automatic installation is intentionally limited to:
+In version `0.1.1`, automatic installation is intentionally limited to:
 
     requirements*.txt
 
@@ -314,6 +400,7 @@ Run unit tests:
     │       ├── __init__.py
     │       ├── cli.py
     │       ├── command_builder.py
+│       ├── command_remover.py
     │       ├── dependency_detector.py
     │       ├── dependency_installer.py
     │       ├── py2to3_converter.py

@@ -2,6 +2,25 @@
 
 All notable changes to CmdForge will be documented in this file.
 
+## v0.1.1-alpha - 2026-05-17
+
+### Added
+
+- Added install scope support for generated commands.
+- Added `--scope user` for current-user command installation.
+- Added `--scope system` for system-wide command installation.
+- Kept `--system` as an alias for system scope.
+- Added `cmdforge remove` for removing CmdForge-managed wrappers.
+- Added wrapper metadata markers for safer removal.
+- Added tests for command removal and wrapper metadata.
+- Added `.deb` package build path to roadmap.
+
+### Security
+
+- Clarified that generated commands run as the invoking user, not automatically as root.
+- CmdForge still avoids automatic `sudo` usage.
+- `cmdforge remove` refuses to remove non-CmdForge files unless `--force` is used.
+
 ## v0.1.0-alpha - 2026-05-17
 
 Initial alpha release.
