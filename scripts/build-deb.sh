@@ -26,7 +26,8 @@ print(match.group(1))
 PY
 )"
 
-DEB_VERSION="${DEB_VERSION:-${VERSION}~beta1}"
+DEB_VERSION_DEFAULT="$("${PYTHON_BIN}" -c 'import sys; v=sys.argv[1]; print(v.replace("rc", "~rc", 1) if "rc" in v else v)' "${VERSION}")"
+DEB_VERSION="${DEB_VERSION:-${DEB_VERSION_DEFAULT}}"
 DEB_FILE="${DIST_DIR}/${PACKAGE_NAME}_${DEB_VERSION}_all.deb"
 
 echo "CmdForge .deb builder"

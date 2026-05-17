@@ -57,7 +57,7 @@ CmdForge automates that workflow while keeping it:
 
 Current version:
 
-    cmdforge 0.3.1
+    cmdforge 1.0.0rc1
 
 Implemented:
 
@@ -94,6 +94,24 @@ Planned:
 - 🐍 Python 2 to Python 3 migration helper
 - 🧪 More tests
 - 🧰 Better support for `pyproject.toml`, `setup.py`, Poetry, and Pipenv
+
+---
+
+## 🚦 Release Candidate Status
+
+CmdForge is currently preparing for the first stable release.
+
+Current release candidate:
+
+    v1.0.0-rc1
+
+Version formats:
+
+- Python package version: `1.0.0rc1`
+- Git tag: `v1.0.0-rc1`
+- Debian package version: `1.0.0~rc1`
+
+The release candidate is focused on stability, packaging validation, and final release checks. No new features are planned before `v1.0.0` unless a blocker is found.
 
 ---
 
@@ -135,7 +153,7 @@ The package is written to:
 
 Example output:
 
-    dist/cmdforge_0.3.1~beta1_all.deb
+    dist/cmdforge_1.0.0~rc1_all.deb
 
 Install the package:
 
@@ -161,7 +179,7 @@ Packaging behavior:
 
 Note:
 
-The first `.deb` packaging path is still beta-level and should be tested on target Debian/Kali systems before relying on it in production.
+The first `.deb` packaging path is still release-candidate level and should be tested on target Debian/Kali systems before relying on it in production.
 
 ---
 
@@ -174,7 +192,7 @@ Example upgrade flow:
     sudo dpkg -i old/cmdforge_0.3.0~beta1_all.deb
     /usr/bin/cmdforge --version
 
-    sudo dpkg -i dist/cmdforge_0.3.1~beta1_all.deb
+    sudo dpkg -i dist/cmdforge_1.0.0~rc1_all.deb
     /usr/bin/cmdforge --version
 
     sudo dpkg -r cmdforge

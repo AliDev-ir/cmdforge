@@ -2,6 +2,27 @@
 
 All notable changes to CmdForge will be documented in this file.
 
+## v1.0.0-rc1 - 2026-05-17
+
+### Release Candidate
+
+- Promoted CmdForge from beta toward the first stable release candidate.
+- Updated Python package version to `1.0.0rc1`.
+- Updated Debian package version mapping to `1.0.0~rc1`.
+- Kept the CLI feature set frozen for stable release validation.
+- Continued using the self-contained Debian package model under `/opt/cmdforge`.
+
+### Stability
+
+- Maintains command builder, wrapper removal, py2to3 helper, and Debian packaging workflows.
+- Uses the existing release checklist and Debian smoke test process.
+- No new runtime feature was added in this release candidate.
+
+### Notes
+
+- This release candidate should be validated with the full release checklist before `v1.0.0`.
+- If no blockers are found, the next stable target is `v1.0.0`.
+
 ## v0.3.1-beta - 2026-05-17
 
 ### Changed
