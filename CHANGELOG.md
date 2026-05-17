@@ -2,6 +2,27 @@
 
 All notable changes to CmdForge will be documented in this file.
 
+## v0.2.1-alpha - 2026-05-17
+
+### Added
+
+- Added `--report` option to `cmdforge py2to3`.
+- Added JSON report output for dry-run and conversion workflows.
+- Added finding summaries to py2to3 scan output.
+- Added syntax check result reporting.
+- Added tests for syntax check behavior.
+
+### Changed
+
+- Replaced compileall-based output validation with direct syntax checks.
+- Avoided generating `__pycache__` during py2to3 syntax checks.
+- Improved py2to3 terminal output with summary counts.
+
+### Notes
+
+- The py2to3 workflow still avoids in-place conversion.
+- Runtime correctness still requires manual review after conversion.
+
 ## v0.2.0-alpha - 2026-05-17
 
 ### Added

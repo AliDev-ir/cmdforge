@@ -57,7 +57,7 @@ CmdForge automates that workflow while keeping it:
 
 Current version:
 
-    cmdforge 0.2.0
+    cmdforge 0.2.1
 
 Implemented:
 
@@ -79,6 +79,8 @@ Implemented:
 - ✅ Unit tests
 - ✅ Safe Python 2 to Python 3 scan workflow
 - ✅ Python 2 to Python 3 converted-copy workflow
+- ✅ JSON report output for py2to3
+- ✅ Syntax check without generating `__pycache__`
 
 Planned:
 
@@ -287,6 +289,13 @@ Create a converted copy:
       --path /path/to/python2/project \
       --output /path/to/python2-project-py3
 
+Write a JSON report:
+
+    cmdforge py2to3 \
+      --path /path/to/python2/project \
+      --dry-run \
+      --report /tmp/py2to3-report.json
+
 The original project is not modified.
 
 Current behavior:
@@ -295,7 +304,9 @@ Current behavior:
 - Ignores `.git`, `.venv`, cache directories, build directories, and bytecode files.
 - Copies the project to a separate output path.
 - Runs conversion on the copy.
-- Runs a Python 3 compile check on the converted output.
+- Runs a Python 3 syntax check on the converted output.
+- Writes optional JSON reports with `--report`.
+- Avoids creating `__pycache__` during syntax checks.
 
 Important:
 
@@ -361,7 +372,7 @@ CmdForge detects common dependency files:
 - `Pipfile.lock`
 - `poetry.lock`
 
-In version `0.2.0`, automatic installation is intentionally limited to:
+In version `0.2.1`, automatic installation is intentionally limited to:
 
     requirements*.txt
 
