@@ -75,3 +75,32 @@ class TestPy2To3Converter(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+from cmdforge.py2to3_converter import syntax_check_output
+
+
+class TestPy2To3SyntaxCheck(unittest.TestCase):
+    def test_syntax_check_does_not_create_pycache(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "main.py"
+            source.write_text("print('hello')\n", encoding="utf-8")
+
+            result = syntax_check_output(root)
+
+            self.assertTrue(result.ok)
+            self.assertEqual(result.files_checked, 1)
+            self.assertFalse((root / "__pycache__").exists())
+
+    def test_syntax_check_reports_syntax_failure(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "broken.py"
+            source.write_text("def broken(:\n    pass\n", encoding="utf-8")
+
+            result = syntax_check_output(root)
+
+            self.assertFalse(result.ok)
+            self.assertEqual(result.files_checked, 1)
+            self.assertEqual(len(result.failures), 1)
+            self.assertIn("broken.py", result.failures[0].path)

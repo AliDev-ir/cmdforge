@@ -121,6 +121,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     py2to3.add_argument("--path", help="Python file or project directory to scan or convert.")
     py2to3.add_argument("--output", help="Output file or directory for converted copy.")
+    py2to3.add_argument("--report", help="Write a JSON report to this path.")
     py2to3.add_argument(
         "--dry-run",
         action="store_true",

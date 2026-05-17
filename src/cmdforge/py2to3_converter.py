@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import compileall
+import json
 import re
 import shutil
 from argparse import Namespace
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from cmdforge.utils import confirm, expand_path, print_section
@@ -48,9 +48,24 @@ PY2_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 
 @dataclass(frozen=True)
 class Py2Finding:
-    path: Path
+    path: str
     kind: str
     count: int
+
+
+@dataclass(frozen=True)
+class SyntaxFailure:
+    path: str
+    line: int | None
+    offset: int | None
+    message: str
+
+
+@dataclass(frozen=True)
+class SyntaxCheckResult:
+    ok: bool
+    files_checked: int
+    failures: list[SyntaxFailure]
 
 
 def should_ignore_path(path: Path) -> bool:
@@ -74,23 +89,50 @@ def iter_python_files(root: Path) -> list[Path]:
     return sorted(files)
 
 
+def read_text_best_effort(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return path.read_text(encoding="latin-1")
+
+
+def display_path(path: Path, root: Path) -> str:
+    try:
+        return str(path.relative_to(root))
+    except ValueError:
+        return str(path)
+
+
 def scan_python2_patterns(root: Path) -> list[Py2Finding]:
     findings: list[Py2Finding] = []
 
     for path in iter_python_files(root):
         try:
-            text = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            text = path.read_text(encoding="latin-1")
+            text = read_text_best_effort(path)
         except OSError:
             continue
 
         for label, pattern in PY2_PATTERNS:
             count = len(pattern.findall(text))
             if count:
-                findings.append(Py2Finding(path=path, kind=label, count=count))
+                findings.append(
+                    Py2Finding(
+                        path=display_path(path, root),
+                        kind=label,
+                        count=count,
+                    )
+                )
 
     return findings
+
+
+def summarize_findings(findings: list[Py2Finding]) -> dict[str, int]:
+    summary: dict[str, int] = {}
+
+    for finding in findings:
+        summary[finding.kind] = summary.get(finding.kind, 0) + finding.count
+
+    return dict(sorted(summary.items()))
 
 
 def print_scan_report(root: Path, findings: list[Py2Finding]) -> None:
@@ -102,10 +144,18 @@ def print_scan_report(root: Path, findings: list[Py2Finding]) -> None:
         print("No obvious Python 2 patterns were detected.")
         return
 
-    print(f"Findings: {len(findings)}")
+    print(f"Finding groups: {len(findings)}")
 
-    current_path: Path | None = None
+    print("")
+    print("Summary:")
+    for kind, count in summarize_findings(findings).items():
+        print(f"- {kind}: {count}")
+
+    current_path: str | None = None
     shown = 0
+
+    print("")
+    print("Files:")
 
     for finding in findings:
         if shown >= 120:
@@ -116,7 +166,7 @@ def print_scan_report(root: Path, findings: list[Py2Finding]) -> None:
         if current_path != finding.path:
             current_path = finding.path
             print("")
-            print(f"- {finding.path.relative_to(root) if finding.path.is_relative_to(root) else finding.path}")
+            print(f"- {finding.path}")
 
         print(f"  - {finding.kind}: {finding.count}")
         shown += 1
@@ -168,27 +218,103 @@ def run_fissix_on_path(target: Path) -> None:
         tool.refactor_file(file_path, write=True)
 
 
-def compile_output(target: Path) -> bool:
-    print_section("Compile check")
-    if target.is_file():
-        target_dir = target.parent
-    else:
-        target_dir = target
+def syntax_check_output(target: Path) -> SyntaxCheckResult:
+    print_section("Syntax check")
 
-    ok = compileall.compile_dir(
-        str(target_dir),
-        quiet=1,
-        force=True,
+    files = iter_python_files(target)
+    failures: list[SyntaxFailure] = []
+
+    for path in files:
+        try:
+            source = read_text_best_effort(path)
+            compile(source, str(path), "exec")
+        except SyntaxError as exc:
+            failures.append(
+                SyntaxFailure(
+                    path=str(path),
+                    line=exc.lineno,
+                    offset=exc.offset,
+                    message=exc.msg,
+                )
+            )
+        except OSError as exc:
+            failures.append(
+                SyntaxFailure(
+                    path=str(path),
+                    line=None,
+                    offset=None,
+                    message=str(exc),
+                )
+            )
+
+    ok = not failures
+
+    print(f"Files checked: {len(files)}")
+    print(f"Syntax result: {'ok' if ok else 'failed'}")
+
+    if failures:
+        print("")
+        print("Syntax failures:")
+        for failure in failures[:50]:
+            location = ""
+            if failure.line is not None:
+                location = f":{failure.line}"
+                if failure.offset is not None:
+                    location += f":{failure.offset}"
+            print(f"- {failure.path}{location}: {failure.message}")
+
+        if len(failures) > 50:
+            print(f"... {len(failures) - 50} more syntax failures not shown.")
+
+    return SyntaxCheckResult(
+        ok=ok,
+        files_checked=len(files),
+        failures=failures,
     )
-
-    print(f"Compile result: {'ok' if ok else 'failed'}")
-    return bool(ok)
 
 
 def default_output_path(path: Path) -> Path:
     if path.is_file():
         return path.with_name(path.stem + "-py3" + path.suffix)
     return path.with_name(path.name + "-py3")
+
+
+def build_report(
+    *,
+    mode: str,
+    source: Path,
+    output: Path | None,
+    findings: list[Py2Finding],
+    syntax_result: SyntaxCheckResult | None,
+) -> dict[str, object]:
+    return {
+        "mode": mode,
+        "source": str(source),
+        "output": str(output) if output else None,
+        "python_files_scanned": len(iter_python_files(source)),
+        "finding_groups": len(findings),
+        "finding_summary": summarize_findings(findings),
+        "findings": [asdict(finding) for finding in findings],
+        "syntax_check": asdict(syntax_result) if syntax_result else None,
+    }
+
+
+def write_json_report(report_path: Path, report: dict[str, object]) -> None:
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    print("")
+    print(f"JSON report written: {report_path}")
+
+
+def maybe_write_report(args: Namespace, report: dict[str, object]) -> None:
+    report_value = getattr(args, "report", None)
+    if not report_value:
+        return
+
+    write_json_report(expand_path(report_value), report)
 
 
 def run_py2to3(args: Namespace) -> int:
@@ -203,6 +329,16 @@ def run_py2to3(args: Namespace) -> int:
     print_scan_report(target, findings)
 
     if args.dry_run:
+        maybe_write_report(
+            args,
+            build_report(
+                mode="dry-run",
+                source=target,
+                output=None,
+                findings=findings,
+                syntax_result=None,
+            ),
+        )
         print("")
         print("Dry-run complete. No files were changed.")
         return 0
@@ -229,22 +365,33 @@ def run_py2to3(args: Namespace) -> int:
     print(f"Copied source to: {output}")
 
     run_fissix_on_path(output)
-    compile_ok = compile_output(output)
+    syntax_result = syntax_check_output(output)
+
+    maybe_write_report(
+        args,
+        build_report(
+            mode="convert",
+            source=target,
+            output=output,
+            findings=findings,
+            syntax_result=syntax_result,
+        ),
+    )
 
     print_section("Done")
     print(f"Converted copy: {output}")
 
-    if not compile_ok:
+    if not syntax_result.ok:
         print("")
-        print("Some files did not compile under Python 3.")
+        print("Some files did not pass Python 3 syntax checks.")
         print("This is expected for many Python 2 projects and requires manual review.")
         return 2
 
-    print("Conversion completed and compile check passed.")
+    print("Conversion completed and syntax check passed.")
     return 0
 
 
 def run_py2to3_placeholder() -> int:
-    print("Python 2 to Python 3 helper is now available via:")
+    print("Python 2 to Python 3 helper is available via:")
     print("cmdforge py2to3 --path /path/to/project --dry-run")
     return 0
