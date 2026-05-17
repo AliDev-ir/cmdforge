@@ -26,3 +26,10 @@ htmlcov/
 # Local files
 *.log
 *.bak
+# Build artifacts
+*.deb
+*.whl
+*.tar.gz
+
+# Local conversion outputs
+*-py3/
