@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cmdforge"
+version = "0.1.0"
+description = "Safely turn Python tools into permanent Linux commands."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "AliDev-ir" }
+]
+keywords = [
+    "cli",
+    "python",
+    "linux",
+    "wrapper",
+    "automation",
+    "virtualenv",
+    "developer-tools"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development",
+    "Topic :: System :: Installation/Setup",
+    "Topic :: Utilities"
+]
+
+[project.urls]
+Homepage = "https://github.com/alidev-ir/cmdforge"
+Repository = "https://github.com/alidev-ir/cmdforge"
+Issues = "https://github.com/alidev-ir/cmdforge/issues"
+
+[project.scripts]
+cmdforge = "cmdforge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
