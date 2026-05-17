@@ -27,6 +27,17 @@ class TestWrapperManager(unittest.TestCase):
         self.assertIn("/tmp/tool/main.py", content)
         self.assertIn('"$@"', content)
 
+
+    def test_build_wrapper_quotes_paths_with_spaces(self):
+        content = build_wrapper_content(
+            python_executable=Path("/tmp/tool with spaces/.venv/bin/python"),
+            entry_file=Path("/tmp/tool with spaces/main file.py"),
+        )
+
+        self.assertIn("'/tmp/tool with spaces/.venv/bin/python'", content)
+        self.assertIn("'/tmp/tool with spaces/main file.py'", content)
+        self.assertIn('"$@"', content)
+
     def test_create_wrapper_dry_run_does_not_create_file(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             install_dir = Path(temp_dir)
