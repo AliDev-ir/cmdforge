@@ -86,15 +86,34 @@ cat > "${DEB_ROOT}/DEBIAN/postinst" <<EOF
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+ACTION="\${1:-configure}"
 PYTHON_BIN="\${PYTHON:-python3}"
-VENV_DIR="/opt/cmdforge/.venv"
-WHEELHOUSE="/opt/cmdforge/wheelhouse"
+APP_DIR="/opt/cmdforge"
+VENV_DIR="\${APP_DIR}/.venv"
+WHEELHOUSE="\${APP_DIR}/wheelhouse"
 
-echo "Setting up CmdForge virtual environment..."
+echo "CmdForge postinst action: \${ACTION}"
+
+if ! command -v "\${PYTHON_BIN}" >/dev/null 2>&1; then
+    echo "Error: python3 is required but was not found." >&2
+    exit 1
+fi
+
+if [[ ! -d "\${WHEELHOUSE}" ]]; then
+    echo "Error: wheelhouse not found: \${WHEELHOUSE}" >&2
+    exit 1
+fi
+
+echo "Creating or reusing CmdForge virtual environment..."
 "\${PYTHON_BIN}" -m venv "\${VENV_DIR}"
 
-echo "Installing CmdForge into /opt/cmdforge/.venv..."
-"\${VENV_DIR}/bin/python" -m pip install --no-index --find-links "\${WHEELHOUSE}" "cmdforge==${VERSION}"
+echo "Installing CmdForge into \${VENV_DIR}..."
+"\${VENV_DIR}/bin/python" -m pip install \\
+    --no-index \\
+    --find-links "\${WHEELHOUSE}" \\
+    --upgrade \\
+    --force-reinstall \\
+    "cmdforge==${VERSION}"
 
 echo "CmdForge installed:"
 /usr/bin/cmdforge --version || true
@@ -105,11 +124,50 @@ cat > "${DEB_ROOT}/DEBIAN/prerm" <<'EOF'
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-if [[ -d /opt/cmdforge/.venv ]]; then
-    rm -rf /opt/cmdforge/.venv
-fi
+ACTION="${1:-remove}"
+VENV_DIR="/opt/cmdforge/.venv"
+
+echo "CmdForge prerm action: ${ACTION}"
+
+case "${ACTION}" in
+    remove|deconfigure)
+        if [[ -d "${VENV_DIR}" ]]; then
+            rm -rf "${VENV_DIR}"
+            echo "Removed CmdForge virtual environment: ${VENV_DIR}"
+        fi
+        ;;
+    upgrade|failed-upgrade)
+        echo "Keeping CmdForge virtual environment for package upgrade."
+        ;;
+    *)
+        echo "No prerm action required for: ${ACTION}"
+        ;;
+esac
 EOF
 chmod 755 "${DEB_ROOT}/DEBIAN/prerm"
+
+cat > "${DEB_ROOT}/DEBIAN/postrm" <<'EOF'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+ACTION="${1:-remove}"
+APP_DIR="/opt/cmdforge"
+
+echo "CmdForge postrm action: ${ACTION}"
+
+case "${ACTION}" in
+    purge)
+        if [[ -d "${APP_DIR}" ]]; then
+            rm -rf "${APP_DIR}"
+            echo "Purged CmdForge app directory: ${APP_DIR}"
+        fi
+        ;;
+    *)
+        :
+        ;;
+esac
+EOF
+chmod 755 "${DEB_ROOT}/DEBIAN/postrm"
 
 echo "Building deb package..."
 dpkg-deb --build --root-owner-group "${DEB_ROOT}" "${DEB_FILE}"
