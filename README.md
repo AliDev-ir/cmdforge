@@ -57,7 +57,7 @@ CmdForge automates that workflow while keeping it:
 
 Current version:
 
-    cmdforge 0.3.0
+    cmdforge 0.3.1
 
 Implemented:
 
@@ -135,7 +135,7 @@ The package is written to:
 
 Example output:
 
-    dist/cmdforge_0.3.0~beta1_all.deb
+    dist/cmdforge_0.3.1~beta1_all.deb
 
 Install the package:
 
@@ -162,6 +162,35 @@ Packaging behavior:
 Note:
 
 The first `.deb` packaging path is still beta-level and should be tested on target Debian/Kali systems before relying on it in production.
+
+---
+
+## 🔁 Debian Upgrade Test
+
+CmdForge supports testing Debian package upgrades.
+
+Example upgrade flow:
+
+    sudo dpkg -i old/cmdforge_0.3.0~beta1_all.deb
+    /usr/bin/cmdforge --version
+
+    sudo dpkg -i dist/cmdforge_0.3.1~beta1_all.deb
+    /usr/bin/cmdforge --version
+
+    sudo dpkg -r cmdforge
+
+Expected behavior:
+
+- The old package installs successfully.
+- The new package upgrades over the old package.
+- The `/opt/cmdforge/.venv` runtime is reused during upgrade.
+- The new version is reported after upgrade.
+- Removing the package removes `/usr/bin/cmdforge`.
+- Removing the package removes `/opt/cmdforge/.venv`.
+
+To purge remaining dpkg package state after removal:
+
+    sudo dpkg -P cmdforge
 
 ---
 

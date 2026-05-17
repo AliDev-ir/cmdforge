@@ -2,6 +2,30 @@
 
 All notable changes to CmdForge will be documented in this file.
 
+## v0.3.1-beta - 2026-05-17
+
+### Changed
+
+- Improved Debian maintainer scripts for upgrade-aware behavior.
+- Updated `postinst` to reinstall CmdForge into the package virtual environment during configure.
+- Updated `prerm` to preserve `/opt/cmdforge/.venv` during package upgrades.
+- Added `postrm` handling for purge cleanup.
+- Added Debian package smoke test script.
+- Added release checklist documentation.
+
+### Tested
+
+- Tested install of `0.3.0~beta1`.
+- Tested upgrade from `0.3.0~beta1` to `0.3.1~beta1`.
+- Verified `/usr/bin/cmdforge --version` reports the upgraded version.
+- Verified package removal cleans `/usr/bin/cmdforge`.
+- Verified package removal cleans `/opt/cmdforge/.venv`.
+
+### Notes
+
+- After `dpkg -r`, Debian may keep package state as `rc`.
+- Use `sudo dpkg -P cmdforge` to purge remaining package state.
+
 ## v0.3.0-beta - 2026-05-17
 
 ### Added
