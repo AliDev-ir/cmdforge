@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 
+from cmdforge import __version__
 from cmdforge.command_builder import run_command_builder
 from cmdforge.py2to3_converter import run_py2to3_placeholder
 
@@ -12,6 +13,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cmdforge",
         description="Safely turn Python tools into permanent Linux commands.",
+    )
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
 
     subparsers = parser.add_subparsers(dest="command")
