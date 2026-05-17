@@ -16,9 +16,52 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command")
 
-    subparsers.add_parser(
+    commandify = subparsers.add_parser(
         "commandify",
         help="Create a permanent Linux command from a Python tool.",
+    )
+    commandify.add_argument("--path", help="Path to the Python tool directory.")
+    commandify.add_argument("--entry", help="Entry Python file, absolute or relative to --path.")
+    commandify.add_argument("--name", help="Command name to create.")
+    commandify.add_argument(
+        "--install-dir",
+        help="Directory where the wrapper command should be created. Default: ~/.local/bin",
+    )
+    commandify.add_argument(
+        "--system",
+        action="store_true",
+        help="Install command in /usr/local/bin instead of ~/.local/bin.",
+    )
+    commandify.add_argument(
+        "--venv",
+        action="store_true",
+        help="Create or reuse .venv inside the selected tool directory.",
+    )
+    commandify.add_argument(
+        "--no-venv",
+        action="store_true",
+        help="Do not create a virtual environment.",
+    )
+    commandify.add_argument(
+        "--install-deps",
+        action="store_true",
+        help="Install supported dependency files into .venv.",
+    )
+    commandify.add_argument(
+        "--no-install-deps",
+        action="store_true",
+        help="Do not install dependencies.",
+    )
+    commandify.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Automatically confirm prompts where possible.",
+    )
+    commandify.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show planned changes without creating files.",
     )
 
     subparsers.add_parser(
@@ -57,7 +100,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.command == "commandify":
-        return run_command_builder()
+        return run_command_builder(args)
 
     if args.command == "py2to3":
         return run_py2to3_placeholder()
